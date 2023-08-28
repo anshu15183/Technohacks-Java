@@ -1,0 +1,123 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class NumberGuessingGame implements ActionListener {
+    private JFrame frame;
+    private JTextArea outputArea;
+    private JTextField inputField;
+    private JButton guessButton;
+    private JButton nextRoundButton;
+
+    private int targetNumber;
+    private int currentRound = 1;
+    private int totalRounds = 3;
+    private int maxAttempts = 10;
+    private int totalScore = 0;
+    private boolean roundCompleted = true;
+
+    public NumberGuessingGame() {
+        initializeUI();
+        startNewRound();
+    }
+
+    private void initializeUI() {
+        frame = new JFrame("Number Guessing Game");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(500, 300);
+
+        outputArea = new JTextArea(10, 30);
+        outputArea.setEditable(false);
+        JScrollPane outputScrollPane = new JScrollPane(outputArea);
+
+        inputField = new JTextField(10);
+
+        guessButton = new JButton("Guess");
+        guessButton.addActionListener(this);
+
+        nextRoundButton = new JButton("Next Round");
+        nextRoundButton.addActionListener(this);
+        nextRoundButton.setEnabled(false);
+
+        JPanel inputPanel = new JPanel();
+        inputPanel.add(new JLabel("Your Guess: "));
+        inputPanel.add(inputField);
+        inputPanel.add(guessButton);
+        inputPanel.add(nextRoundButton);
+
+        frame.setLayout(new BorderLayout());
+        frame.add(outputScrollPane, BorderLayout.CENTER);
+        frame.add(inputPanel, BorderLayout.SOUTH);
+
+        frame.setVisible(true);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == guessButton) {
+            processGuess();
+        } else if (e.getSource() == nextRoundButton) {
+            startNewRound();
+        }
+    }
+
+    private void processGuess() {
+        if (!roundCompleted) {
+            int userGuess = Integer.parseInt(inputField.getText());
+
+            if (userGuess == targetNumber) {
+                int roundScore = maxAttempts - (10 - maxAttempts);
+                totalScore += roundScore;
+                outputArea.append("Congratulations! You guessed the number " + targetNumber +
+                        " in " + (10 - maxAttempts + 1) + " attempts. Round score: " + roundScore + "\n\n");
+                guessButton.setEnabled(false);
+                nextRoundButton.setEnabled(true);
+                roundCompleted = true;
+            } else {
+                outputArea.append(userGuess < targetNumber ? "Your guess is too low.\n" : "Your guess is too high.\n");
+            }
+
+            maxAttempts--;
+
+            if (maxAttempts <= 0) {
+                outputArea.append("Round " + currentRound + " over. The number was: " + targetNumber + "\n");
+                guessButton.setEnabled(false);
+                nextRoundButton.setEnabled(true);
+                roundCompleted = true;
+            }
+
+            inputField.setText("");
+        }
+    }
+
+    private void startNewRound() {
+        if (currentRound <= totalRounds && roundCompleted) {
+            targetNumber = generateRandomNumber(10, 15);
+            outputArea.setText("");
+            outputArea.append("Round " + currentRound + " - Guess the number between 1 and 50. " +
+                    "You have " + maxAttempts + " attempts.\n");
+            guessButton.setEnabled(true);
+            nextRoundButton.setEnabled(false);
+            roundCompleted = false;
+            maxAttempts = 10;
+            currentRound++;
+            inputField.setText("");
+        } else {
+            displayFinalScore();
+        }
+    }
+
+    private void displayFinalScore() {
+        outputArea.append("Game over. Total score: " + totalScore + "\n");
+        guessButton.setEnabled(false);
+        nextRoundButton.setEnabled(false);
+    }
+
+    private int generateRandomNumber(int min, int max) {
+        return (int) (Math.random() * (max - min + 1)) + min;
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(NumberGuessingGame::new);
+    }
+}
